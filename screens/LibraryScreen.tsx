@@ -1,15 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
   FlatList,
+  ScrollView,
   TouchableOpacity,
   StyleSheet,
   useColorScheme,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import { EXERCISES } from '../data/exercises';
 import { Difficulty, MuscleGroup } from '../types/workout';
+import { getAllBestSets } from '../storage/database';
 import { colors } from '../theme';
 
 const DIFFICULTIES: Difficulty[] = ['beginner', 'intermediate', 'advanced'];
@@ -28,6 +31,11 @@ export default function LibraryScreen() {
   const c = colors(scheme);
   const [diffFilter, setDiffFilter] = useState<Difficulty | 'all'>('all');
   const [muscleFilter, setMuscleFilter] = useState<MuscleGroup | 'all'>('all');
+  const [bestSets, setBestSets] = useState<Record<string, { weight: number; reps: number }>>({});
+
+  useFocusEffect(useCallback(() => {
+    setBestSets(getAllBestSets());
+  }, []));
 
   const filtered = EXERCISES.filter((e) => {
     const diffOk = diffFilter === 'all' || e.difficulty === diffFilter;
@@ -40,44 +48,44 @@ export default function LibraryScreen() {
       <Text style={[styles.header, { color: c.text }]}>Exercise Library</Text>
 
       <Text style={[styles.filterLabel, { color: c.muted }]}>Difficulty</Text>
-      <View style={styles.filterRow}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.chipScroll}
+        contentContainerStyle={styles.chipRow}
+      >
         {(['all', ...DIFFICULTIES] as const).map((d) => (
           <TouchableOpacity
             key={d}
-            style={[
-              styles.chip,
-              { borderColor: c.border, backgroundColor: diffFilter === d ? c.accent : c.card },
-            ]}
+            style={[styles.chip, { borderColor: c.border, backgroundColor: diffFilter === d ? c.accent : c.card }]}
             onPress={() => setDiffFilter(d)}
           >
-            <Text style={{ color: diffFilter === d ? '#fff' : c.text, fontSize: 13 }}>
+            <Text style={{ color: diffFilter === d ? '#fff' : c.text, fontSize: 14 }}>
               {d.charAt(0).toUpperCase() + d.slice(1)}
             </Text>
           </TouchableOpacity>
         ))}
-      </View>
+      </ScrollView>
 
       <Text style={[styles.filterLabel, { color: c.muted }]}>Muscle Group</Text>
-      <FlatList
+      <ScrollView
         horizontal
-        data={MUSCLE_GROUPS}
-        keyExtractor={(g) => g}
         showsHorizontalScrollIndicator={false}
-        style={styles.muscleRow}
-        renderItem={({ item }) => (
+        style={styles.chipScroll}
+        contentContainerStyle={styles.chipRow}
+      >
+        {MUSCLE_GROUPS.map((item) => (
           <TouchableOpacity
-            style={[
-              styles.chip,
-              { borderColor: c.border, backgroundColor: muscleFilter === item ? c.accent : c.card },
-            ]}
+            key={item}
+            style={[styles.chip, { borderColor: c.border, backgroundColor: muscleFilter === item ? c.accent : c.card }]}
             onPress={() => setMuscleFilter(item)}
           >
-            <Text style={{ color: muscleFilter === item ? '#fff' : c.text, fontSize: 13 }}>
+            <Text style={{ color: muscleFilter === item ? '#fff' : c.text, fontSize: 14 }}>
               {item.charAt(0).toUpperCase() + item.slice(1)}
             </Text>
           </TouchableOpacity>
-        )}
-      />
+        ))}
+      </ScrollView>
 
       <FlatList
         data={filtered}
@@ -91,15 +99,17 @@ export default function LibraryScreen() {
                 {item.muscleGroup} · {item.equipment}
               </Text>
             </View>
-            <View
-              style={[
-                styles.badge,
-                { backgroundColor: DIFFICULTY_COLOR[item.difficulty] + '22' },
-              ]}
-            >
-              <Text style={{ color: DIFFICULTY_COLOR[item.difficulty], fontSize: 12, fontWeight: '600' }}>
-                {item.difficulty}
-              </Text>
+            <View style={styles.cardRight}>
+              <View style={[styles.badge, { backgroundColor: DIFFICULTY_COLOR[item.difficulty] + '22' }]}>
+                <Text style={{ color: DIFFICULTY_COLOR[item.difficulty], fontSize: 12, fontWeight: '600' }}>
+                  {item.difficulty}
+                </Text>
+              </View>
+              {bestSets[item.id] ? (
+                <Text style={[styles.orm, { color: c.muted }]}>
+                  1RM ~{Math.round(bestSets[item.id].weight * (1 + bestSets[item.id].reps / 30))} lbs
+                </Text>
+              ) : null}
             </View>
           </View>
         )}
@@ -110,27 +120,34 @@ export default function LibraryScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: { fontSize: 28, fontWeight: '700', margin: 20, marginBottom: 8 },
-  filterLabel: { fontSize: 12, fontWeight: '600', marginLeft: 16, marginTop: 8, textTransform: 'uppercase' },
-  filterRow: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 12, marginBottom: 4 },
-  muscleRow: { paddingHorizontal: 12, marginBottom: 8 },
+  header: { fontSize: 28, fontWeight: '700', marginHorizontal: 20, marginTop: 20, marginBottom: 16 },
+  filterLabel: { fontSize: 12, fontWeight: '600', marginLeft: 20, marginTop: 16, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.8 },
+  chipScroll: { height: 52 },
+  chipRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
   chip: {
     borderRadius: 20,
     borderWidth: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    margin: 4,
+    paddingHorizontal: 18,
+    paddingVertical: 9,
+    marginRight: 10,
+    flexShrink: 0,
   },
-  list: { paddingHorizontal: 16, paddingBottom: 40 },
+  list: { paddingHorizontal: 16, paddingTop: 20, paddingBottom: 40 },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 10,
-    padding: 14,
-    marginBottom: 8,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
   },
   cardLeft: { flex: 1 },
   name: { fontSize: 16, fontWeight: '500' },
-  sub: { fontSize: 13, marginTop: 2 },
-  badge: { borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4 },
+  sub: { fontSize: 13, marginTop: 4 },
+  cardRight: { alignItems: 'flex-end', gap: 6 },
+  badge: { borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5 },
+  orm: { fontSize: 11, fontWeight: '500' },
 });

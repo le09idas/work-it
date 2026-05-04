@@ -165,6 +165,36 @@ export function getSessions(): WorkoutSession[] {
   });
 }
 
+export function getMuscleGroupTotals(): Record<string, number> {
+  const rows = db.getAllSync<{ exerciseId: string; setCount: number }>(
+    `SELECT el.exerciseId, COUNT(sl.id) as setCount
+     FROM set_logs sl
+     JOIN exercise_logs el ON sl.exerciseLogId = el.id
+     GROUP BY el.exerciseId`
+  );
+  return rows.reduce((acc, r) => {
+    acc[r.exerciseId] = r.setCount;
+    return acc;
+  }, {} as Record<string, number>);
+}
+
+export function getAllBestSets(): Record<string, { weight: number; reps: number }> {
+  const rows = db.getAllSync<{ exerciseId: string; weight: number; reps: number }>(
+    `SELECT el.exerciseId, sl.weight, sl.reps
+     FROM set_logs sl
+     JOIN exercise_logs el ON sl.exerciseLogId = el.id`
+  );
+  const best: Record<string, { weight: number; reps: number }> = {};
+  for (const r of rows) {
+    const est1rm = r.weight * (1 + r.reps / 30);
+    const existing = best[r.exerciseId];
+    if (!existing || est1rm > existing.weight * (1 + existing.reps / 30)) {
+      best[r.exerciseId] = { weight: r.weight, reps: r.reps };
+    }
+  }
+  return best;
+}
+
 export function getExerciseHistory(exerciseId: string) {
   const rows = db.getAllSync<{
     date: string;
