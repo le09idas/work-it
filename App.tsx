@@ -8,11 +8,14 @@ import { useColorScheme, Text } from 'react-native';
 import { initDatabase } from './storage/database';
 import { colors } from './theme';
 
+initDatabase();
+
 import HomeScreen from './screens/HomeScreen';
 import LibraryScreen from './screens/LibraryScreen';
 import HistoryScreen from './screens/HistoryScreen';
 import ProgressScreen from './screens/ProgressScreen';
 import ActiveWorkoutScreen from './screens/ActiveWorkoutScreen';
+import WorkoutPreviewScreen from './screens/WorkoutPreviewScreen';
 import EditTemplateScreen from './screens/EditTemplateScreen';
 import SessionDetailScreen from './screens/SessionDetailScreen';
 import ExerciseProgressScreen from './screens/ExerciseProgressScreen';
@@ -24,6 +27,17 @@ function HomeStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Home" component={HomeScreen} />
+      <Stack.Screen
+        name="WorkoutPreview"
+        component={WorkoutPreviewScreen}
+        options={{
+          headerShown: true,
+          title: '',
+          headerStyle: { backgroundColor: '#0A84FF' },
+          headerTintColor: '#fff',
+          headerBackTitle: 'Workouts',
+        }}
+      />
       <Stack.Screen name="ActiveWorkout" component={ActiveWorkoutScreen} />
       <Stack.Screen name="EditTemplate" component={EditTemplateScreen} options={{ headerShown: true, title: 'New Template' }} />
     </Stack.Navigator>
@@ -52,13 +66,9 @@ export default function App() {
   const scheme = useColorScheme();
   const c = colors(scheme);
 
-  useEffect(() => {
-    initDatabase();
-  }, []);
-
   return (
     <NavigationContainer>
-      <StatusBar style="auto" />
+      <StatusBar style="light" />
       <Tab.Navigator
         screenOptions={{
           headerShown: false,

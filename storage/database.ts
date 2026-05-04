@@ -73,6 +73,31 @@ export function saveTemplate(name: string, exerciseIds: string[]): WorkoutTempla
   return { id, name, exerciseIds };
 }
 
+export function updateTemplate(id: string, name: string, exerciseIds: string[]) {
+  db.runSync(
+    'UPDATE templates SET name = ?, exerciseIds = ? WHERE id = ?',
+    name,
+    JSON.stringify(exerciseIds),
+    id
+  );
+}
+
+export function duplicateTemplate(id: string): WorkoutTemplate {
+  const original = db.getFirstSync<{ name: string; exerciseIds: string }>(
+    'SELECT name, exerciseIds FROM templates WHERE id = ?',
+    id
+  )!;
+  const newId = `template_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+  const newName = `${original.name} (Copy)`;
+  db.runSync(
+    'INSERT INTO templates (id, name, exerciseIds) VALUES (?, ?, ?)',
+    newId,
+    newName,
+    original.exerciseIds
+  );
+  return { id: newId, name: newName, exerciseIds: JSON.parse(original.exerciseIds) };
+}
+
 export function deleteTemplate(id: string) {
   db.runSync('DELETE FROM templates WHERE id = ?', id);
 }

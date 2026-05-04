@@ -14,22 +14,21 @@ export function useTimer() {
   }, []);
 
   useEffect(() => {
-    if (isRunning && secondsLeft > 0) {
-      intervalRef.current = setInterval(() => {
-        setSecondsLeft((s) => {
-          if (s <= 1) {
-            clearInterval(intervalRef.current!);
-            intervalRef.current = null;
-            setIsRunning(false);
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-            return 0;
-          }
-          return s - 1;
-        });
-      }, 1000);
-    }
+    if (!isRunning) return;
+    intervalRef.current = setInterval(() => {
+      setSecondsLeft((s) => {
+        if (s <= 1) {
+          clearInterval(intervalRef.current!);
+          intervalRef.current = null;
+          setIsRunning(false);
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          return 0;
+        }
+        return s - 1;
+      });
+    }, 1000);
     return clear;
-  }, [isRunning, secondsLeft, clear]);
+  }, [isRunning, clear]);
 
   const start = useCallback((seconds: number) => {
     clear();

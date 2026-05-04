@@ -22,6 +22,6 @@ const dark = {
   border: '#3A3A3C',
 };
 
-export function colors(scheme: ColorSchemeName) {
-  return scheme === 'dark' ? dark : light;
+export function colors(_scheme: ColorSchemeName) {
+  return dark;
 }

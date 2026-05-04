@@ -7,6 +7,7 @@ import {
   StyleSheet,
   useColorScheme,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { EXERCISES } from '../data/exercises';
 import { Difficulty, MuscleGroup } from '../types/workout';
 import { colors } from '../theme';
@@ -35,7 +36,7 @@ export default function LibraryScreen() {
   });
 
   return (
-    <View style={[styles.container, { backgroundColor: c.bg }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: c.bg }]}>
       <Text style={[styles.header, { color: c.text }]}>Exercise Library</Text>
 
       <Text style={[styles.filterLabel, { color: c.muted }]}>Difficulty</Text>
@@ -103,7 +104,7 @@ export default function LibraryScreen() {
           </View>
         )}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 

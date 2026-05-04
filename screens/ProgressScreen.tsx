@@ -7,6 +7,7 @@ import {
   StyleSheet,
   useColorScheme,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { EXERCISES } from '../data/exercises';
 import { getExerciseHistory } from '../storage/database';
@@ -31,7 +32,7 @@ export default function ProgressScreen() {
   const tracked = EXERCISES.filter((e) => exercisesWithData.includes(e.id));
 
   return (
-    <View style={[styles.container, { backgroundColor: c.bg }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: c.bg }]}>
       <Text style={[styles.header, { color: c.text }]}>Progress</Text>
 
       <FlatList
@@ -55,7 +56,7 @@ export default function ProgressScreen() {
           </Text>
         }
       />
-    </View>
+    </SafeAreaView>
   );
 }
 

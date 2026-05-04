@@ -7,6 +7,7 @@ import {
   StyleSheet,
   useColorScheme,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { getSessions } from '../storage/database';
 import { WorkoutSession } from '../types/workout';
@@ -42,7 +43,7 @@ export default function HistoryScreen() {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: c.bg }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: c.bg }]}>
       <Text style={[styles.header, { color: c.text }]}>History</Text>
 
       <FlatList
@@ -77,7 +78,7 @@ export default function HistoryScreen() {
           </Text>
         }
       />
-    </View>
+    </SafeAreaView>
   );
 }
 

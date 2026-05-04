@@ -9,10 +9,10 @@ import {
   useColorScheme,
   Alert,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { EXERCISES } from '../data/exercises';
-import { Exercise, MuscleGroup } from '../types/workout';
-import { saveTemplate } from '../storage/database';
+import { MuscleGroup, WorkoutTemplate } from '../types/workout';
+import { saveTemplate, updateTemplate } from '../storage/database';
 import { colors } from '../theme';
 
 const MUSCLE_GROUPS: (MuscleGroup | 'all')[] = [
@@ -23,8 +23,11 @@ export default function EditTemplateScreen() {
   const scheme = useColorScheme();
   const c = colors(scheme);
   const nav = useNavigation<any>();
-  const [name, setName] = useState('');
-  const [selected, setSelected] = useState<string[]>([]);
+  const route = useRoute<any>();
+  const existing: WorkoutTemplate | undefined = route.params?.template;
+
+  const [name, setName] = useState(existing?.name ?? '');
+  const [selected, setSelected] = useState<string[]>(existing?.exerciseIds ?? []);
   const [muscleFilter, setMuscleFilter] = useState<MuscleGroup | 'all'>('all');
 
   const filtered = EXERCISES.filter(
@@ -46,7 +49,11 @@ export default function EditTemplateScreen() {
       Alert.alert('No exercises', 'Add at least one exercise.');
       return;
     }
-    saveTemplate(name.trim(), selected);
+    if (existing) {
+      updateTemplate(existing.id, name.trim(), selected);
+    } else {
+      saveTemplate(name.trim(), selected);
+    }
     nav.goBack();
   }
 
@@ -119,7 +126,7 @@ export default function EditTemplateScreen() {
         style={[styles.saveBtn, { backgroundColor: c.accent }]}
         onPress={save}
       >
-        <Text style={styles.saveBtnText}>Save Template</Text>
+        <Text style={styles.saveBtnText}>{existing ? 'Save Changes' : 'Save Template'}</Text>
       </TouchableOpacity>
     </View>
   );
